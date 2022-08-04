@@ -1,0 +1,301 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck disable=SC2043
+# shellcheck disable=SC2016
+# shellcheck disable=SC2028
+# shellcheck disable=SC2034
+# shellcheck disable=SC2046
+# shellcheck disable=SC2086
+# shellcheck disable=SC2181
+
+defaults ()
+{
+
+RED="$(tput setaf 196)"
+GREEN="$(tput setaf 46)"
+DIR_BIN="$(dirname "$0")"
+DIR_REAL="$(realpath "$DIR_BIN")"
+DIR_BASE="$(dirname "$DIR_REAL")"
+GL_CONFIG="$HOME/.gl-config"
+GIT_CFG='.git/config'
+BIN=$(basename "$0")
+
+}
+
+die ()
+{
+  printf "%s\\n" "${RED}[ERROR] $1 $NORMAL" && exit 1
+}
+
+log ()
+{
+  local NOW
+  NOW="$(date +'%F %T')"
+  printf "%s\\n" "${NORMAL}${NOW} [INFO] $1 $NORMAL"
+}
+
+log_send_file()
+{
+  MAX_COLS="$(tput cols)"
+  echo "SEND $1 to $GL_CFG_HOST *****"
+}
+
+success ()
+{
+  printf "%s\\n" "${GREEN}[OK] $1 $NORMAL" && exit 0
+}
+
+stderror ()
+{
+  echo >&2 "$1"
+}
+
+config()
+{
+
+[[ ! -e "$GL_CONFIG" ]] && die "NOT FOUND FILE: $GL_CONFIG"
+
+eval $(sed '/:/!d;/^ *#/d;s/:/ /;' < "$GL_CONFIG" | while read -r k v
+do
+    str="$k='$v'"
+    echo "$str"
+done)
+
+[[ -z "$GL_TOKEN_NAME" ]] && die "UNDEFINED GL_TOKEN_NAME"
+[[ -z "$GL_TOKEN_PASS" ]] && die "UNDEFINED GL_TOKEN_PASS"
+[[ -z "$HTTP_PROXY"        ]] || stderror "Using HTTP_PROXY=$HTTP_PROXY"
+
+if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
+then
+
+  CURL_SOCKS="--socks5 $GL_PROXY_SOCKS_HOST:$GL_PROXY_SOCKS_PORT"
+  #FIXME stderror "Using CURL_SOCKS=$CURL_SOCKS"
+
+fi
+
+GL_URL_API="https://$GL_TOKEN_NAME:$GL_TOKEN_PASS@$GL_HOST/api/v4"
+
+CURL_SOCKS=''
+if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
+then
+  CURL_SOCKS="--socks5 $GL_PROXY_SOCKS_HOST:$GL_PROXY_SOCKS_PORT"
+fi
+
+}
+
+check_dependencies()
+{
+
+for i in awk curl glab jq
+do
+  command -v "$i" >/dev/null || die "try: install $i "
+done
+
+}
+
+read_alias()
+{
+
+source "$DIR_REAL/gl-src-alias"
+
+}
+
+markdown()
+{
+cat << EOF
+---
+fontsize: 8pt
+code-block-font-size: 8pt
+classoption: landscape
+---
+EOF
+}
+
+code()
+{
+  printf "\\n\\n%s\\n\\n" '```'
+}
+
+title1()
+{
+  printf "\\n# %s\\n\\n" "$1"
+}
+
+title2()
+{
+  printf "\\n## %s\\n\\n" "$1"
+}
+
+title3()
+{
+  printf "\\n### %s\\n\\n" "$1"
+}
+
+get_file_list()
+{
+  local DIR
+  DIR='.'
+
+  [[ -z "$1" ]] && exit 1
+  [[ -n "$2" ]] && DIR="$2"
+
+  find -L "$DIR" -type f -iname "$1" | while read -r FILE
+  do
+    echo "$FILE"
+  done
+
+}
+
+glab_cfg_get()
+{
+  grep "$1" "$HOME/.gitlab.cfg" | cut -d= -f2 | tr -d ' '
+}
+
+filelist_total()
+{
+  local TOTAL
+
+  TOTAL="$(wc -l "$1" | cut -d' ' -f1)"
+  printf "found %s %s\\n" "$TOTAL" "$2"
+}
+
+jq_yq_modify()
+{
+  jq empty "$1" 2>/dev/null
+
+  if [[ "$?" -eq 0 ]]
+  then
+    jq -r ".$2=\"$3\"" "$1" | sponge "$1"
+  else
+    yq -r ".$2=\"$3\"" "$1" | sponge "$1"
+  fi
+}
+
+jq_modify_verbosity()
+{
+  [[ -e "$1" ]] || die "NOT FOUND $1"
+  [[ -z "$2" ]] && die "EMPTY VERBOSITY"
+
+  sed -i "s/\"verbosity\": .,/\"verbosity\": $2,/g" "$1"
+}
+
+function notification_user_get()
+{
+  local URL="$GL_URL_API/notification_settings"
+
+  curl $CURL_SOCKS $URL                  \
+    -s                                   \
+    -k                                   \
+    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+      | jq -r .
+}
+
+function notification_group_get()
+{
+  local GROUP_ID="$1"
+  local URL="$GL_URL_API/groups/$GROUP_ID/notification_settings"
+
+  curl $CURL_SOCKS $URL                  \
+    -s                                   \
+    -k                                   \
+    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+      | jq -r .
+}
+
+function notification_group_set()
+{
+  local GROUP_ID="$1"
+  local LEVEL='mention'
+
+  [[ -z "$2" ]] || LEVEL="$2"
+  local URL="$GL_URL_API/groups/$GROUP_ID/notification_settings?level=$LEVEL"
+
+  curl $CURL_SOCKS $URL                  \
+    -s                                   \
+    -k                                   \
+    -X "PUT"                             \
+    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+      | jq -r .
+}
+
+function project_upload()
+{
+
+  [[ -z "$1" ]] && die "EMPTY PROJECT_ID"
+  [[ -z "$2" ]] && die "EMPTY FILENAME"
+
+  local URL="$GL_URL_API/projects/$1/uploads"
+
+  curl $CURL_SOCKS $URL                  \
+    -s                                   \
+    -k                                   \
+    -X "POST"                            \
+    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+    --form "file=@$2"                    \
+      | jq -r .markdown
+}
+
+function project_list()
+{
+
+  local PAGE=1
+  [[ -n "$1" ]] && PAGE="$1"
+  local URL="$GL_URL_API/projects?page=$PAGE&per_page=100&membership=true"
+
+  JSON="gitlab-projects-${PAGE}.json"
+
+  curl $CURL_SOCKS $URL                  \
+    -s                                   \
+    -k                                   \
+    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+      | jq -r . > "$JSON" && project_filter_list "$JSON"
+
+}
+
+function project_filter_list()
+{
+
+  local JSON="$1"
+
+  [[ -e "$JSON" ]] || die "NOT FOUND FILE $JSON"
+
+  JQ="\(.id) \(.path_with_namespace) \(.ssh_url_to_repo) \(.description)"
+
+  jq -r '.' "$JSON" | jq -r ".[] | \"$JQ\""
+
+}
+
+function clean_title()
+{
+  echo "$1" | tr '"' "'" | sed 's/\x1B\[[0-9;]*[JKmsu]//g'
+}
+
+function main()
+{
+
+  defaults
+  check_dependencies
+  config
+  read_alias
+
+}
+
+main "$@"
