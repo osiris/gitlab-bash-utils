@@ -120,6 +120,5 @@ gl mr new                          \
   --source-branch "$SOURCE_BRANCH" \
   --assignee      "$ASSIGNEE"      \
   --label         "$LABELS"        \
-  --related-issue "$ISSUE_ID"      \
   --title         "$TITLE"         \
   --description   "$DESCRIPTION"
