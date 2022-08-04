@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+GL_ALIAS="$DIR_BIN/gl-src-alias"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Generate Markdown Table Overview
+
+### Usage
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+### Description
+
+Generate a markdown table output for each command script.
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+function file2alias()
+{
+
+  local A
+
+  A="$(grep -w "$1" "$GL_ALIAS" \
+    | awk '/^alias/ {print $2}' \
+    | head -1                   \
+    | cut -d= -f1)"
+
+  [[ -z "$A" ]] && A='    '
+  printf "%s%-4s%s" '`' "$A" '`'
+
+}
+
+function table2header()
+{
+
+printf "| %-23s | %-6s | %-70s |\\n" 'script' 'alias' 'description'
+
+}
+
+function title2table()
+{
+
+  $1 -h              \
+    | grep '^## '    \
+    | head -1        \
+    | sed 's/##//g'  \
+    | while read -r _ D
+      do
+
+        printf "| \`%-21s\` | %-6s | %-70s |\\n" \
+               "$1" "$(file2alias "$1")" "$D"
+
+      done
+
+}
+
+function table2div()
+{
+
+printf "| %-23s | %-6s | %-70s |\\n" ' ' ' ' ' ' | sed 's/ /-/g'
+
+}
+
+table2header
+table2div
+
+find . -maxdepth 1 -type f -executable -iname 'gl-*' \
+  | grep -E 'gl-[a-z\-]+'                            \
+  | cut -d/ -f2-                                     \
+  | sort -u                                          \
+  | while read -r F
+    do
+
+      TABLE="$(title2table "$F")"
+      if [[ -z "$TABLE" ]]
+      then
+        D='FIXME'
+        [[ "$F" = 'gl-src-common' ]] && D='Common variables and functions'
+        printf "| \`%-21s\` | %-6s | %-70s |" \
+               "$F" "$(file2alias "$F")" "$D"
+      fi
+      echo "$TABLE"
+
+    done
