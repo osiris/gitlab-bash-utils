@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck disable=SC2116
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` List all _projects_ in _GitLab_ for current user
+
+### Usage
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN | grep osiux | grep bash
+
+	37091293 osiux/gilabash git@gitlab.com:osiux/gilabash.git fun scripts in bash
+	6663951 osiux/git-bash-utils git@gitlab.com:osiux/git-bash-utils.git Repository of bash scripts for various git utils.
+	34554594 osiux/gitlab-bash-utils git@gitlab.com:osiux/gitlab-bash-utils.git Useful bash scripts for various gitlab utils.
+	21388424 osiux/links-bash-utils git@gitlab.com:osiux/links-bash-utils.git organize bookmarks from links.txt and convert to links.org
+	22673434 osiux/log-bash-utils git@gitlab.com:osiux/log-bash-utils.git useful scripts for logs files
+	6663957 osiux/media-bash-utils git@gitlab.com:osiux/media-bash-utils.git organize photos and videos using metadata
+	6663960 osiux/minimal-bash-prompt git@gitlab.com:osiux/minimal-bash-prompt.git A minimal prompt for bash
+	6663969 osiux/org-bash-utils git@gitlab.com:osiux/org-bash-utils.git utils bash scripts for org-mode
+	22624065 osiux/redmine-bash-utils git@gitlab.com:osiux/redmine-bash-utils.git Bash scripts for using Redmine from TTY
+	6664008 osiux/txt-bash-jrnl git@gitlab.com:osiux/txt-bash-jrnl.git A simple command line journal application that stores your journal in a plain text file, developed in bash and inspired in http://jrnl.sh
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+# FIXME add REGEX filters
+# FIXME paginate projects
+project_list 1
+project_list 2
