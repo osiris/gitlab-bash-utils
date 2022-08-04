@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Create _MR_ with default values defined in \`~/.gl-config\`
+
+### Usage
+
+\`\`\`bash
+
+  $BIN ISSUE_ID
+
+\`\`\`
+
+### Description
+
+Create _MR_ with these default values:
+
+\`\`\`
+
+  target_branch: develop
+  source_branch: current branch
+  assignee:      value defined GL_DEFAULT_ASSIGNEE in ~/.gl-config
+  lables:        wip
+  title:         value defined in related ISSUE_ID
+  description:   checkbox with link of value defined in related ISSUE_ID
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN 1234
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+if [[ ! -t 0 ]]
+then
+  TMPI="$(mktemp)"
+
+  true > "$TMPI"
+
+  while IFS= read -r PIPED_INPUT
+  do
+    echo "$PIPED_INPUT" >> "$TMPI"
+  done
+
+fi
+
+if [[ -e "$TMPI" ]]
+then
+  ISSUE_ID="$(head -1 "$TMPI")"
+else
+  ISSUE_ID="$1"
+fi
+
+CURRENT_BRANCH="$(git branch --no-color --show-current)"
+
+[[ -n "$TARGET_BRANCH" ]] || TARGET_BRANCH='develop'
+[[ -n "$SOURCE_BRANCH" ]] || SOURCE_BRANCH="$CURRENT_BRANCH"
+# FIXME validate CURRENT_BRANCH feature/ ?
+[[ -n "$LABELS"        ]] || LABELS='wip'
+[[ -n "$ASSIGNEE"      ]] || ASSIGNEE="$GL_DEFAULT_ASSIGNEE"
+[[ -z "$ASSIGNEE"      ]] && die "EMPTY ASSIGNEE"
+[[ -z "$ISSUE_ID"      ]] && die "EMPTY ISSUE_ID"
+
+ISSUE_TITLE="$(gl-issue-title "$ISSUE_ID")"
+if [[ -z "$TITLE" ]]
+then
+  TITLE="Draft: Resolve $SOURCE_BRANCH '$ISSUE_TITLE'"
+fi
+
+ISSUE_CHECK="$(gl-issue-check "$ISSUE_ID")"
+if [[ -z "$DESCRIPTION" ]]
+then
+
+DESCRIPTION="$(cat << EOF
+
+- Closes #${ISSUE_ID}
+
+$ISSUE_CHECK
+
+EOF
+)"
+
+fi
+
+gl mr new                          \
+  --target-branch "$TARGET_BRANCH" \
+  --source-branch "$SOURCE_BRANCH" \
+  --assignee      "$ASSIGNEE"      \
+  --label         "$LABELS"        \
+  --related-issue "$ISSUE_ID"      \
+  --title         "$TITLE"         \
+  --description   "$DESCRIPTION"
