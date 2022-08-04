@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# FIXME https://docs.gitlab.com/ee/api/projects.html#upload-a-file
+
+# shellcheck disable=SC1090
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Upload file in project and return _URL_ link in _Markdown_
+
+### Usage
+
+\`\`\`bash
+
+  $BIN FILE
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  PROJECT_ID=34078674 $BIN 2022-08-04-003117.png
+
+  ![2022-08-04-003117](/uploads/74cfea3e7792c30efd9c794deb91ca8f/2022-08-04-003117.png)
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+TMPI="$(mktemp)"
+true > "$TMPI"
+
+if [[ ! -t 0 ]]
+then
+
+  while IFS= read -r PIPED_INPUT
+  do
+    echo "$PIPED_INPUT" >> "$TMPI"
+  done
+
+else
+
+  [[ -z "$1" ]] && exit 1
+  echo "$1" > "$TMPI"
+
+fi
+
+[[ -n "$PROJECT_ID" ]] || die "UNDEFINED PROJECT_ID"
+
+# ESCAPE BACKSLASH
+DIR="${HOME//\//\\/}"
+sed -i "s/~/$DIR/g" "$TMPI"
+
+while read -r FILE
+do
+
+  if [[ -e "$FILE" ]]
+  then
+
+    project_upload "$PROJECT_ID" "$FILE"
+
+  else
+
+    echo "NOT FOUND FILE $FILE"
+    continue
+
+  fi
+
+done < "$TMPI"
+
+rm -f "$TMPI"

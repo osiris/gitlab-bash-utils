@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC2116,SC1090
+
+BIN="$(basename "$0")"
+GL_CONFIG="$HOME/.gl-config"
+GL_BACKUP="$HOME/.gl-config.$(date +%s).bak"
+GL_CONFIG="$HOME/.config/glab-cli/config.yml"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Overwrite \`~/.gl-config\` with default config values
+
+### Usage
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+### Description
+
+You would need to customize the variables based on your environment.
+
+### Example
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+Define variables in \`~/.gl-config\`:
+
+\`\`\`
+
+  GL_ACCESS_ADMIN: 60
+  GL_ACCESS_DEVELOPER: 30
+  GL_ACCESS_GUEST: 10
+  GL_ACCESS_MAINTAINER: 40
+  GL_ACCESS_MINIMAL: 5
+  GL_ACCESS_NONE: 0
+  GL_ACCESS_OWNER: 50
+  GL_ACCESS_REPORTER: 20
+  GL_BRANCH: master
+  GL_DEFAULT_ASSIGNEE: admin
+  GL_HOST: gitlab.com
+  GL_MERGE_LEVEL: 40
+  GL_PROJECT_ALLOW_MERGE_ON_SKIPPED_PIPELINE: false
+  GL_PROJECT_MERGE_REQUESTS_ENABLED: true
+  GL_PROJECT_ONLY_ALLOW_MERGE_IF_ALL_DISCUSSIONS_ARE_RESOLVED: true
+  GL_PROJECT_ONLY_ALLOW_MERGE_IF_PIPELINE_SUCCEEDS: true
+  GL_PROXY_HTTP_ENABLED: 0
+  GL_PROXY_HTTP_HOST: 127.0.0.1
+  GL_PROXY_HTTP_PORT: 3128
+  GL_PROXY_SOCKS_ENABLED: 0
+  GL_PROXY_SOCKS_HOST: 127.0.0.1
+  GL_PROXY_SOCKS_PORT: 8080
+  GL_PUSH_LEVEL: 40
+  GL_TOKEN_NAME: glab-cli-token
+  GL_TOKEN_PASS: SuperTextPlainSecret
+  GL_TOKEN_PREFIX: token/gitlab.com
+  GL_UNPROTECT_LEVEL: 40
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+stderror ()
+{
+  echo >&2 "$1"
+}
+
+config_example()
+{
+
+  if [[ -e "$GL_CONFIG" ]]
+  then
+    cp "$GL_CONFIG" "$GL_BACKUP"
+    stderror "BACKUP CURRENT CONFIG IN $GL_BACKUP"
+  fi
+
+  usage                                  \
+    | grep -E '^  [A-Z_]+: '             \
+    | sed 's/^  //g'                     \
+    | sed "s/admin/$USER/g"              \
+    | sed "s/\/home\/GL/\/home\/$USER/g" > "$GL_CONFIG"
+
+  stderror "WRITE EXAMPLE CONFIG IN $GL_CONFIG"
+
+  if [[ -e "$GL_CONFIG" ]]
+  then
+    stderror "REMEMBER ADJUST CONFIG IN $GL_CONFIG"
+  else
+    stderror "NOT FOUND $GL_CONFIG"
+  fi
+
+  exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help)   ]] && usage
+
+config_example
