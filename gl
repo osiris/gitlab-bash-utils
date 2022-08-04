@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+CFG="$HOME/.gl-config"
+BIN="$(basename "$0")"
+
+function usage()
+{
+cat << EOF
+Usage:
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+\`gl\` is a wrapper for the \`glab\` command to extend functionality,
+first install glab from https://github.com/profclems/glab and later
+configure \`~/.gl-config\`, use \`gl-config\` to generate default config
+values.
+
+Example:
+
+\`\`\`bash
+
+  $BIN issue list
+
+\`\`\`
+
+Read command helps in \`gl-help.md\`
+
+EOF
+exit 0
+}
+
+function config_validate()
+{
+  [[ -e "$CFG" ]] || exit 1
+}
+
+function params()
+{
+
+for a in "$@"
+do
+  Q=''
+  [[ "${a}" =~ ' ' ]] && Q='"'
+  [[ "${a}" =~ '/' ]] && Q='"'
+  printf "%s%s%s " "$Q" "$a" "$Q"
+done
+
+}
+
+function proxy_enable()
+{
+
+if grep -q 'GL_PROXY_HTTP_ENABLED: 1' "$CFG" 2>/dev/null
+then
+
+  HOST="$(awk '/GL_PROXY_HTTP_HOST/ {print $2}' "$CFG")"
+  PORT="$(awk '/GL_PROXY_HTTP_PORT/ {print $2}' "$CFG")"
+  HTTP="http://$HOST:$PORT"
+  export http_proxy="$HTTP"
+  export https_proxy="$HTTP"
+
+fi
+
+}
+
+function proxy_disable()
+{
+
+if grep -q 'GL_PROXY_HTTP_ENABLED: 1' "$CFG" 2>/dev/null
+then
+
+  unset http_proxy
+  unset https_proxy
+
+fi
+
+}
+
+[[ "$1" =~ ^[-]+(h|help)    ]] && usage
+
+config_validate
+
+PARAMS="$(params "$@")"
+[[ "$PARAMS" =~ 'issue new' ]] && PARAMS="$PARAMS --no-editor"
+[[ "$PARAMS" =~ 'mr new'    ]] && PARAMS="$PARAMS --no-editor"
+
+proxy_enable
+bash -c "glab $PARAMS"
+proxy_disable
