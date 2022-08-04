@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck disable=SC2035
+
+DIR_BIN=$(dirname "$0") && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Check syntax using shellcheck and group errors by code
+
+### Usage
+
+\`\`\`bash
+
+  $BIN
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN
+
+  gl-src-check                                  SC2034
+  gl-mr-link                                    SC2034
+  gl-mr-new                                     SC1003
+  gl-prj-config                                 SC1090 SC2086
+  gl-prj-upload                                 SC1090 SC2162
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+TMP="$(mktemp)"
+FILES="$(mktemp)"
+ERRORS=0
+
+file --mime-type * | grep shellscript | tr -d ':' > "$FILES"
+
+while read -r FILE _
+do
+
+if ! shellcheck "$FILE" > "$TMP"
+then
+
+  SC="$(grep -Eo 'SC[0-9]+' "$TMP" | sort -u | tr '\n' ' ')"
+  printf "%-45s %s\n" "$FILE" "$SC"
+  ERRORS="$((ERRORS+1))"
+
+fi
+
+done < "$FILES"
+
+rm -f "$TMP"
+rm -f "$FILES"
+
+exit "$ERRORS"
