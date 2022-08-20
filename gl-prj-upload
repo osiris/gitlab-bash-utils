@@ -20,6 +20,7 @@
 # FIXME https://docs.gitlab.com/ee/api/projects.html#upload-a-file
 
 # shellcheck disable=SC1090
+# shellcheck source=/dev/null
 
 DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
 
