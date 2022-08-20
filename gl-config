@@ -64,6 +64,7 @@ Define variables in \`~/.gl-config\`:
   GL_ACCESS_REPORTER: 20
   GL_BRANCH: master
   GL_DEFAULT_ASSIGNEE: admin
+  GL_DEFAULT_REVIEWER: admin
   GL_HOST: gitlab.com
   GL_MERGE_LEVEL: 40
   GL_PROJECT_ALLOW_MERGE_ON_SKIPPED_PIPELINE: false
