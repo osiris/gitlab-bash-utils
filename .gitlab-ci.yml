@@ -5,6 +5,8 @@ image: koalaman/shellcheck-alpine:stable
 
 before_script:
   - shellcheck --version
+  - pwd
+  - ls -lht
 
 stages:
   - shellcheck
