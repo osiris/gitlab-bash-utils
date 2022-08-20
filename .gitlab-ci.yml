@@ -1,7 +1,10 @@
 ---
 # -*- coding: utf-8 -*-
 
-image: koalaman/shellcheck:stable
+image: koalaman/shellcheck-alpine:stable
+
+before_script:
+  - shellcheck --version
 
 stages:
   - shellcheck
