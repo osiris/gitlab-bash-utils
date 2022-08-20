@@ -92,7 +92,9 @@ CURRENT_BRANCH="$(git branch --no-color --show-current)"
 # FIXME validate CURRENT_BRANCH feature/ ?
 [[ -n "$LABELS"        ]] || LABELS='wip'
 [[ -n "$ASSIGNEE"      ]] || ASSIGNEE="$GL_DEFAULT_ASSIGNEE"
+[[ -n "$REVIEWER"      ]] || REVIEWER="$GL_DEFAULT_REVIEWER"
 [[ -z "$ASSIGNEE"      ]] && die "EMPTY ASSIGNEE"
+[[ -z "$REVIEWER"      ]] && REVIEWER="$ASSIGNEE"
 [[ -z "$ISSUE_ID"      ]] && die "EMPTY ISSUE_ID"
 
 ISSUE_TITLE="$(gl-issue-title "$ISSUE_ID")"
@@ -120,6 +122,7 @@ gl mr new                          \
   --target-branch "$TARGET_BRANCH" \
   --source-branch "$SOURCE_BRANCH" \
   --assignee      "$ASSIGNEE"      \
+  --reviewer      "$REVIEWER"      \
   --label         "$LABELS"        \
   --title         "$TITLE"         \
   --description   "$DESCRIPTION"
