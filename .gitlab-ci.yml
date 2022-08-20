@@ -1,0 +1,12 @@
+---
+# -*- coding: utf-8 -*-
+
+image: koalaman/shellcheck:stable
+
+stages:
+  - shellcheck
+
+shellcheck:
+  stage: shellcheck
+  script:
+    - ./gl-src-check
