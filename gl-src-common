@@ -289,6 +289,17 @@ function clean_title()
   echo "$1" | tr '"' "'" | sed 's/\x1B\[[0-9;]*[JKmsu]//g'
 }
 
+function remote_get_url()
+{
+  local ORIGIN='origin'
+  [[ -z "$1" ]] || ORIGIN="$1"
+
+  git remote get-url --all "$ORIGIN"        \
+   | head -1                                \
+   | sed 's/[a-z\-]\+:[a-zA-Z0-9_\-]\+@//g' \
+   | sed 's/\.git$//g'
+}
+
 function main()
 {
 
