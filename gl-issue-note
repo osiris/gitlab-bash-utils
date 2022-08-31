@@ -68,7 +68,7 @@ if [[ -e "$TMPI" ]]
 then
   INPUT_ID="$(head -1 "$TMPI" | grep -Eo '#[0-9]+' | tr -d '#')"
   [[ -n "$ISSUE_ID" ]] || ISSUE_ID="$INPUT_ID"
-  BODY="$(tail -n+2 "$TMPI" | head -n -1 | sed 's/`/\\`/g')"
+  BODY="$(tail -n+2 "$TMPI" | head -n -1 | sed 's/`/\\`/g' | sed 's/"/\\"/g')"
   INPUT_TIME="$(tail  -1 "$TMPI" | grep -Eo '[0-9]{2}:[0-9]{2}')"
   [[ -z "$INPUT_TIME" ]] || TIME="$INPUT_TIME"
 else
