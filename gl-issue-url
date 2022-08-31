@@ -20,7 +20,7 @@
 # shellcheck disable=SC1090
 # shellcheck source=/dev/null
 
-DIR_BIN="$(dirname "0")" && source "$DIR_BIN/gl-src-common"
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
 
 function usage()
 {
