@@ -56,6 +56,6 @@ exit 0
 [[ -z "$1"       ]] || ISSUE="$1"
 [[ -z "$ISSUE"   ]] && die "INVALID ISSUE"
 
-URL="$(git remote get-url --all "$ORIGIN" | head -1 | sed 's/\.git$//g')"
+URL="$(remote_get_url "$ORIGIN")"
 
 printf "%s/%s/%s" "$URL" "$SUFFIX" "$ISSUE"
