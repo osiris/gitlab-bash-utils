@@ -737,6 +737,7 @@ function main()
   check_dependencies
   config
   glab_token
+  default_assignee
   read_alias
 
 }
