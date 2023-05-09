@@ -36,6 +36,7 @@ DIR_BIN="$(dirname "$0")"
 DIR_REAL="$(realpath "$DIR_BIN")"
 DIR_BASE="$(dirname "$DIR_REAL")"
 GL_CONFIG="$HOME/.gl-config"
+GLAB_CONFIG="$HOME/.config/glab-cli/config.yml"
 GIT_CFG='.git/config'
 BIN=$(basename "$0")
 
@@ -72,7 +73,8 @@ stderror ()
 config()
 {
 
-[[ ! -e "$GL_CONFIG" ]] && die "NOT FOUND FILE: $GL_CONFIG"
+[[ -e "$GL_CONFIG"   ]] || die "NOT FOUND FILE: $GL_CONFIG"
+[[ -e "$GLAB_CONFIG" ]] || die "NOT FOUND FILE: $GLAB_CONFIG"
 
 eval $(sed '/:/!d;/^ *#/d;s/:/ /;' < "$GL_CONFIG" | while read -r k v
 do
