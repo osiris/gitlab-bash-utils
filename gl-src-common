@@ -160,8 +160,30 @@ fi
 
 }
 
+function validate_issue()
 {
 
+  # ISSUE_ID="6"
+  # ISSUE_ID="osiux/gitlab-bash-utils#6"
+  #
+  # ISSUE_ID="REPO_NAMESPACE#ISSUE_NUMBER"
+  #
+  # ISSUE_ID="[a-zA-Z0-9_/\-]?[#]?[0-9]+$"
+  #
+  # ISSUE_NUMBER="6"
+  #
+  # REPO_NAMESPACE="osiux/gitlab-bash-utils"
+
+  [[ -n "$VALIDATE_ISSUE" ]] || VALIDATE_ISSUE="$1"
+  [[ -z "$VALIDATE_ISSUE" ]] && die "EMPTY VALIDATE_ISSUE ID"
+
+  REPO="$(echo "$VALIDATE_ISSUE" | grep -Eo '^[a-zA-Z0-9_/\-]+#')"
+  ISSUE_ID="$(echo "$VALIDATE_ISSUE" | grep -Eo '[#]?[0-9/]+$')"
+  ISSUE_ID="${ISSUE_ID//#/}"
+  REPO="${REPO//#/}"
+
+  [[ -z "$ISSUE_ID" ]] && die "INVALID ISSUE ID"
+  [[ -z "$REPO"     ]] || REPO="-R $REPO"
 
 }
 
