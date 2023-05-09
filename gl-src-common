@@ -606,6 +606,48 @@ EOF
 
 }
 
+function group_new()
+{
+  local DATA DESCRIPTION GROUP GROUP_ID JSON URL
+
+  GROUP="$1"
+  DESCRIPTION="$2"
+
+  GROUP_ID="$(group_get "$GROUP" 2>/dev/null)"
+
+  if [[ "$GROUP_ID" -gt 0 ]]
+  then
+    echo "$GROUP_ID"
+    stderror "GROUP $GROUP ALREADY EXISTS WITH GROUP_ID $GROUP_ID"
+    return "$GROUP_ID"
+  fi
+
+DATA="$(cat << EOF
+{"name": "$GROUP", "path": "$GROUP", "description": "$DESCRIPTION"}
+EOF
+)"
+
+  URL="$GL_URL_API/groups/"
+  JSON="$(mktemp)"
+
+  stderror "CREATE GROUP $GROUP IN ${URL#*@}"
+  proxy_socks_show
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL \
+       -H "PRIVATE-TOKEN: $GLAB_TOKEN"         \
+       -H "Content-Type: application/json"     \
+       --data "$DATA"                          > "$JSON"
+
+  [[ -s "$JSON" ]] || die "EMPTY JSON $JSON"
+
+  GROUP_ID="$(jq -r .id "$JSON")"
+  echo "$GROUP_ID"
+
+  [[ "$GROUP_NEW_SHOW" -eq 1 ]] && >&2 jq -r . "$JSON"
+
+  rm -f "$JSON"
+}
+
 function project_list()
 {
 
