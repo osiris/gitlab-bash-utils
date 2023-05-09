@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-CFG="$HOME/.gl-config"
-BIN="$(basename "$0")"
+# shellcheck disable=SC1090
+# shellcheck source=/dev/null
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
 
 function usage()
 {
@@ -50,11 +52,6 @@ EOF
 exit 0
 }
 
-function config_validate()
-{
-  [[ -e "$CFG" ]] || exit 1
-}
-
 function params()
 {
 
@@ -68,38 +65,7 @@ done
 
 }
 
-function proxy_enable()
-{
-
-if grep -q 'GL_PROXY_HTTP_ENABLED: 1' "$CFG" 2>/dev/null
-then
-
-  HOST="$(awk '/GL_PROXY_HTTP_HOST/ {print $2}' "$CFG")"
-  PORT="$(awk '/GL_PROXY_HTTP_PORT/ {print $2}' "$CFG")"
-  HTTP="http://$HOST:$PORT"
-  export http_proxy="$HTTP"
-  export https_proxy="$HTTP"
-
-fi
-
-}
-
-function proxy_disable()
-{
-
-if grep -q 'GL_PROXY_HTTP_ENABLED: 1' "$CFG" 2>/dev/null
-then
-
-  unset http_proxy
-  unset https_proxy
-
-fi
-
-}
-
 [[ "$1" =~ ^[-]+(h|help)    ]] && usage
-
-config_validate
 
 PARAMS="$(params "$@")"
 [[ "$PARAMS" =~ 'issue new' ]] && PARAMS="$PARAMS --no-editor"
