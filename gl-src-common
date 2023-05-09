@@ -117,6 +117,17 @@ git_remote_geturl()
   git remote get-url "$ORIGIN" | sed 's/[a-z\-]\+:[a-zA-Z0-9_\-]\+@//g'
 }
 
+git_remote_gethost()
+{
+
+git-remote-geturl "$ORIGIN" \
+  | sed "s/$REGEX_PROTO//g" \
+  | sed 's/git@//g'         \
+  | tr ':' '/'              \
+  | cut -d '/' -f1
+
+}
+
 CURL_SOCKS=''
 if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
 then
