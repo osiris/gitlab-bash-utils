@@ -51,9 +51,8 @@ exit 0
 [[ "$1" =~ ^[-]+(h|help) ]] && usage
 
 [[ -e "$GIT_CFG" ]] || die "INVALID GIT REPOSITORY"
-[[ -z "$1"       ]] && die "EMPTY MR ID"
-
-MR="$1"
+[[ -n "$MR"      ]] || MR="$1"
+[[ -z "$MR"      ]] && die "EMPTY MR ID"
 
 gl mr view "$MR"    \
   | tee             \
