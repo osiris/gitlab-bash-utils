@@ -397,6 +397,14 @@ function project_upload()
   rm -f "$TMP"
 }
 
+function safe_url()
+{
+  local URL
+  URL="${1#*@}"
+  URL="${URL%%/*}"
+  echo "$URL"
+}
+
   rm -f "$JSON"
 }
 
