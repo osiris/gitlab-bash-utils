@@ -374,19 +374,30 @@ function notification_group_set()
 
 function project_upload()
 {
+  local JSON
 
   [[ -z "$1" ]] && die "EMPTY PROJECT_ID"
   [[ -z "$2" ]] && die "EMPTY FILENAME"
 
   local URL="$GL_URL_API/projects/$1/uploads"
 
-  curl $CURL_SOCKS $URL                  \
-    -s                                   \
-    -k                                   \
-    -X "POST"                            \
-    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
-    --form "file=@$2"                    \
-      | jq -r .markdown
+  JSON="$(mktemp)"
+  TMP="$(mktemp)"
+
+  curl $CURL_SOCKS $URL             \
+    --no-progress-meter             \
+    -k                              \
+    -X "POST"                       \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN" \
+    --form "file=@$2"               >"$JSON" 2>"$TMP" || die "UPLOAD FAILED $(cat "$TMP")"
+
+  jq -r .markdown "$JSON"
+
+  rm -f "$JSON"
+  rm -f "$TMP"
+}
+
+  rm -f "$JSON"
 }
 
 function project_list()
