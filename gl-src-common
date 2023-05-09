@@ -139,6 +139,19 @@ function proxy_socks_show()
 
 }
 
+glab_token()
+{
+
+local YQ=".hosts[\"$GIT_HOST\"].token"
+GLAB_TOKEN="$(yq -r "$YQ" "$GLAB_CONFIG")"
+
+[[ -z "$GLAB_TOKEN" ]] \
+  && die "UNDEFINED TOKEN FOR $GIT_HOST IN $GLAB_CONFIG"
+
+GL_URL_API="https://private-token:$GLAB_TOKEN@$GIT_HOST/api/v4"
+
+[[ -z "$HTTP_PROXY"        ]] || stderror "Using HTTP_PROXY=$HTTP_PROXY"
+
 CURL_SOCKS=''
 if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
 then
