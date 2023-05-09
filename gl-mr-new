@@ -88,7 +88,7 @@ fi
 
 CURRENT_BRANCH="$(git branch --no-color --show-current)"
 
-if [[ ! -n "$TARGET_BRANCH" ]]
+if [[ -z "$TARGET_BRANCH" ]]
 then
   # FIXME switch master to main if exists
   [[ "$CURRENT_BRANCH" =~ feature/.* ]] && TARGET_BRANCH='develop'
