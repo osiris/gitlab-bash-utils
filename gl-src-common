@@ -756,7 +756,7 @@ function project_filter_list()
 
   JQ="\(.id) \(.path_with_namespace) \(.ssh_url_to_repo) \(.description)"
 
-  jq -r '.' "$JSON" | jq -r ".[] | \"$JQ\""
+  jq -r '.' "$JSON" | jq -r ".[] | \"$JQ\"" | tr -d $'\r' | grep -vE '^$'
 
 }
 
