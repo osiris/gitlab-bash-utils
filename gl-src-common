@@ -424,6 +424,39 @@ function project_protected_branches()
   rm -f "$JSON"
 }
 
+function project_protect_branch()
+{
+  local BRANCH JQ JSON PROJECT_ID URL
+
+  PROJECT_ID="$1"
+  BRANCH="$2"
+
+  ACCESS="name=$BRANCH&push_access_level=$GL_ACCESS_DEVELOPER"
+  ACCESS+="&merge_access_level=$GL_ACCESS_DEVELOPER"
+  ACCESS+="&unprotect_access_level=$GL_ACCESS_MAINTAINER"
+
+  URL="$GL_URL_API/projects/$PROJECT_ID/protected_branches?$ACCESS"
+  JSON="$(mktemp)"
+
+  stderror "SET PROTECTED BRANCHES FROM $(safe_url "$URL")"
+  proxy_socks_show
+
+  JQ='.'
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL \
+    -X POST                                    \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"            > "$JSON"
+
+  MSG="$(jq -r .message "$JSON")"
+
+  if [[ "$MSG" = "Protected branch 'develop' already exists" ]]
+  then
+    echo project_unprotect_branch "$PROJECT_ID" 'develop'
+  fi
+
+  jq -r "$JQ" "$JSON"
+}
+
 function project_list()
 {
 
