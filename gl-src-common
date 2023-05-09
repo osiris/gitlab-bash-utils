@@ -648,6 +648,42 @@ EOF
   rm -f "$JSON"
 }
 
+function project_new()
+{
+  local GROUP_ID JSON PROJECT PROJECT_ID URL
+
+  PROJECT="$1"
+  GROUP_ID="$2"
+
+  [[ -z "$PROJECT"  ]] && return 0
+  [[ -z "$GROUP_ID" ]] && return 0
+
+  PROJECT_ID="$(project_get "$PROJECT" 2>/dev/null)"
+
+  if [[ "$PROJECT_ID" -gt 0 ]]
+  then
+    echo "$PROJECT_ID"
+    stderror "PROJECT $PROJECT ALREADY EXISTS WITH PROJECT_ID $PROJECT_ID"
+    return "$PROJECT_ID"
+  fi
+
+  JSON="$(mktemp --suffix .json)"
+  URL="$GL_URL_API/projects"
+
+  curl $CURL_DEBUG $CURL_SOCKS $CURL_OPTS $URL  \
+    -k                                          \
+    -X POST                                     \
+    -d "name=$PROJECT&namespace_id=$GROUP_ID"   \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"             > "$JSON"
+
+  PROJECT_ID="$(jq -r .id "$JSON")"
+  echo "$PROJECT_ID"
+
+  [[ "$PROJECT_NEW_SHOW" -eq 1 ]] && >&2 jq -r . "$JSON"
+
+  rm -f "$JSON"
+}
+
 function project_list()
 {
 
