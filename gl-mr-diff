@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck source=/dev/null
+# shellcheck disable=SC2016
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Show _MR_ changes as diff
+
+### Usage
+
+\`\`\`bash
+
+  $BIN MR_ID
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN 76
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+if [[ ! -t 0 ]]
+then
+  TMPI="$(mktemp)"
+
+  true > "$TMPI"
+
+  while IFS= read -r PIPED_INPUT
+  do
+    echo "$PIPED_INPUT" >> "$TMPI"
+  done
+
+fi
+
+if [[ -e "$TMPI" ]]
+then
+  MR_ID="$(head -1 "$TMPI" | grep -Eo '![0-9]+' | tr -d '!')"
+else
+  MR_ID="$1"
+fi
+
+MR_REGEX='[0-9]+'
+[[ -z "$MR_ID" ]] && die "EMPTY MR_ID"
+[[ "$MR_ID" =~ $MR_REGEX ]] || die "INVALID MR_ID: $MR_ID"
+
+if command -v delta >/dev/null
+then
+  gl mr diff "$MR_ID" | delta
+else
+  gl mr diff "$MR_ID"
+fi
+
+rm -f "$TMPI"
