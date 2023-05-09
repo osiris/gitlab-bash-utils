@@ -40,7 +40,11 @@ cat << EOF
 
 \`\`\`bash
 
-  $BIN 1234
+  $BIN 14 00:01
+  send /spend 01m to 14
+
+  git log -1 | $BIN 14
+  send /spend 01m to 14
 
 \`\`\`
 
@@ -67,6 +71,7 @@ if [[ -e "$TMPI" ]]
 then
   ISSUE_ID="$(head -1 "$TMPI" | grep -Eo '#[0-9]+' | tr -d '#')"
   TIME="$(tail  -1 "$TMPI" | grep -Eo '[0-9]{2}:[0-9]{2}')"
+  [[ -z "$ISSUE_ID" ]] && ISSUE_ID="$1"
 else
   ISSUE_ID="$1"
   TIME="$2"
