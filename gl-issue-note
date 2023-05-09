@@ -64,9 +64,13 @@ then
 
 fi
 
+[[ -n "$REPO_REGEX" ]] || REPO_REGEX='[a-z0-9_\-]+#[0-9]+'
+
 if [[ -e "$TMPI" ]]
 then
   INPUT_ID="$(head -1 "$TMPI" | grep -Eo '#[0-9]+' | tr -d '#')"
+  REPO_ID="$(head -1 "$TMPI" | grep -Eo "$REPO_REGEX" | cut -d '#' -f1)"
+  REPO_DIR="$(basename "$PWD")"
   [[ -n "$ISSUE_ID" ]] || ISSUE_ID="$INPUT_ID"
   BODY="$(tail -n+2 "$TMPI" | head -n -1 | sed 's/`/\\`/g' | sed 's/"/\\"/g')"
   INPUT_TIME="$(tail  -1 "$TMPI" | grep -Eo '[0-9]{2}:[0-9]{2}')"
@@ -81,6 +85,14 @@ ISSUE_REGEX='[0-9]+'
 [[ -z "$ISSUE_ID" ]] && die "EMPTY ISSUE_ID"
 [[ "$ISSUE_ID" =~ $ISSUE_REGEX ]] || die "INVALID ISSUE_ID: $ISSUE_ID"
 
+if [[ -n "$REPO_DIR" ]]
+then
+  if [[ "$REPO_DIR" != "$REPO_ID" ]]
+  then
+    die "NOT MATCH $REPO_ID#$ISSUE_ID WITH CURRENT DIRECTORY $REPO_DIR"
+  fi
+fi
+
 SPEND_REGEX='[0-9]{2}:[0-9]{2}'
 [[ -z "$TIME"     ]] && die "EMPTY TIME"
 SPEND="$(echo "$TIME" | time2spend)"
@@ -88,7 +100,7 @@ SPEND="$(echo "$TIME" | time2spend)"
 [[ "$TIME" =~ $SPEND_REGEX ]] || die "INVALID TIME FORMAT: $SPEND"
 
 TMP="$(mktemp)"
-echo "$BODY"  >  "$TMP"
+echo "$BODY"  | sed 's/\$/\\$/g' >  "$TMP"
 echo "$SPEND" >> "$TMP"
 # FIXME validate local project with ISSUE_ID
 printf "send %s to Issue %s\\n" "$SPEND" "$ISSUE_ID"
