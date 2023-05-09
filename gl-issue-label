@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck source=/dev/null
+# shellcheck disable=SC2016
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Add _label_ in _Issue_
+
+### Usage
+
+\`\`\`bash
+
+  $BIN ISSUE_ID LABEL
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN 1234 wip
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+if [[ ! -t 0 ]]
+then
+  TMPI="$(mktemp)"
+
+  true > "$TMPI"
+
+  while IFS= read -r PIPED_INPUT
+  do
+    echo "$PIPED_INPUT" >> "$TMPI"
+  done
+
+fi
+
+[[ -n "$REPO_REGEX" ]] || REPO_REGEX='[a-z0-9_\-]+#[0-9]+'
+
+if [[ -e "$TMPI" ]]
+then
+  INPUT_ID="$(head -1 "$TMPI" | grep -Eo '#[0-9]+' | tr -d '#')"
+  REPO_ID="$(head -1 "$TMPI" | grep -Eo "$REPO_REGEX" | cut -d '#' -f1)"
+  REPO_DIR="$(basename "$PWD")"
+  [[ -n "$ISSUE_ID" ]] || ISSUE_ID="$INPUT_ID"
+else
+  ISSUE_ID="$1"
+fi
+
+ISSUE_REGEX='[0-9]+'
+[[ -z "$ISSUE_ID" ]] && die "EMPTY ISSUE_ID"
+[[ "$ISSUE_ID" =~ $ISSUE_REGEX ]] || die "INVALID ISSUE_ID: $ISSUE_ID"
+
+if [[ -n "$REPO_DIR" ]]
+then
+  if [[ "$REPO_DIR" != "$REPO_ID" ]]
+  then
+    die "NOT MATCH $REPO_ID#$ISSUE_ID WITH CURRENT DIRECTORY $REPO_DIR"
+  fi
+fi
+
+[[ -z "$2"         ]] || shift;LABELS="${*}"
+[[ -z "$LABELS"    ]] && die "EMPTY LABELS"
+
+LABELS="${LABELS// /,}"
+
+# FIXME validate local project with ISSUE_ID
+printf "add labels %s to Issue %s\\n" "$LABELS" "$ISSUE_ID"
+echo gl issue update "$ISSUE_ID" -l "$LABELS"
