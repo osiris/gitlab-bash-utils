@@ -405,6 +405,30 @@ function safe_url()
   echo "$URL"
 }
 
+function project_member_add()
+{
+  local DATA JQ JSON LEVEL PROJECT_ID URL USER_ID
+
+  PROJECT_ID="$1"
+  USER_ID="$2"
+  LEVEL="$3"
+
+  JSON="$(mktemp)"
+  DATA="user_id=$USER_ID&access_level=$LEVEL"
+  URL="$GL_URL_API/projects/$PROJECT_ID/members?$DATA"
+
+  stderror "ADD MEMBER IN $(safe_url "$URL")"
+  proxy_socks_show
+
+  JQ='.'
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"            > "$JSON"
+
+   jq -r "$JQ" "$JSON"
+
+}
+
 function project_protected_branches()
 {
   local JQ JSON PROJECT_ID URL
