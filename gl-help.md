@@ -7,37 +7,41 @@ classoption: landscape
 # `gl prj` commands
 
 
-## `gl-prj-config` Apply project settings defined in `~/.gl-config`
+## `gl-prj-new` Create a project
 
 ### Usage
 
 ```bash
 
-  gl-prj-config GL_PROJECT_ID
+  gl-prj-new PROJECT_NAME GROUP_ID
 
 ```
-
-### Defaults
-
-| variable                                                     | value |
-|--------------------------------------------------------------|-------|
-| GL_PROJECT_ONLY_ALLOW_MERGE_IF_PIPELINE_SUCCEEDS             | true  |
-| GL_PROJECT_MERGE_REQUESTS_ENABLED                            | true  |
-| GL_PROJECT_ALLOW_MERGE_ON_SKIPPED_PIPELINE                   | false |
-| GL_PROJECT_ONLY_ALLOW_MERGE_IF_ALL_DISCUSSIONS_ARE_RESOLVED  | true  |
 
 ### Example
 
 ```bash
 
-  gl-prj-config 34078674
+  gl-prj-new test 11
 
-  {
-    "only_allow_merge_if_pipeline_succeeds": true,
-    "merge_requests_enabled": true,
-    "allow_merge_on_skipped_pipeline": false,
-    "only_allow_merge_if_all_discussions_are_resolved": true
-  }
+```
+
+
+## `gl-prj-get` Get /project/
+
+### Usage
+
+```bash
+
+  gl-prj-get PROJECT
+
+```
+
+### Example
+
+```bash
+
+  gl-prj-get test
+  123
 
 ```
 
@@ -93,7 +97,95 @@ classoption: landscape
 ```
 
 
+## `gl-prj-config` Apply project settings defined in `~/.gl-config`
+
+### Usage
+
+```bash
+
+  gl-prj-config GL_PROJECT_ID
+
+```
+
+### Defaults
+
+| variable                                                     | value |
+|--------------------------------------------------------------|-------|
+| GL_PROJECT_ONLY_ALLOW_MERGE_IF_PIPELINE_SUCCEEDS             | true  |
+| GL_PROJECT_MERGE_REQUESTS_ENABLED                            | true  |
+| GL_PROJECT_ALLOW_MERGE_ON_SKIPPED_PIPELINE                   | false |
+| GL_PROJECT_ONLY_ALLOW_MERGE_IF_ALL_DISCUSSIONS_ARE_RESOLVED  | true  |
+
+### Example
+
+```bash
+
+  gl-prj-config 34078674
+
+  {
+    "only_allow_merge_if_pipeline_succeeds": true,
+    "merge_requests_enabled": true,
+    "allow_merge_on_skipped_pipeline": false,
+    "only_allow_merge_if_all_discussions_are_resolved": true
+  }
+
+```
+
+
+## `gl-prj-protected-branches` Get /project/
+
+### Usage
+
+```bash
+
+  gl-prj-protected-branches PROJECT
+
+```
+
+### Example
+
+```bash
+
+  gl-prj-protected-branches test
+
+```
+
+
+## `gl-prj-issues` Get /project/
+
+### Usage
+
+```bash
+
+  gl-prj-issues PROJECT
+
+```
+
+### Example
+
+```bash
+
+  gl-prj-issues test
+
+```
+
+
 # `gl src` commands
+
+
+## `gl-src-table` Generate Markdown Table Overview
+
+### Usage
+
+```bash
+
+  gl-src-table
+
+```
+
+### Description
+
+Generate a markdown table output for each command script.
 
 
 ## `gl-src-check` Check syntax using shellcheck and group errors by code
@@ -134,19 +226,3 @@ classoption: landscape
 ### Description
 
 Generate a markdown output for usage of each command script.
-
-
-## `gl-src-table` Generate Markdown Table Overview
-
-### Usage
-
-```bash
-
-  gl-src-table
-
-```
-
-### Description
-
-Generate a markdown table output for each command script.
-
