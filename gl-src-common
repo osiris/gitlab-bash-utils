@@ -534,6 +534,35 @@ function group_get()
   rm -f "$JSON"
 }
 
+function group_get_parent_id()
+{
+  local GROUP JQ JSON URL
+
+  GROUP="$1"
+  URL="$GL_URL_API/groups?search=$GROUP"
+  JSON="$(mktemp)"
+
+  stderror "GET GROUP $GROUP FROM $(safe_url "$URL")"
+  proxy_socks_show
+
+  JQ=".[] | select(.name == \"$GROUP\")"
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL  \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"             \
+    -H "Content-Type: application/json"         \
+    | jq -r "$JQ"                               > "$JSON"
+
+  # RETURN WHEN NOT FOUND GROUP
+  [[ -s "$JSON" ]] || return 0
+
+  PARENT_ID="$(jq -r .parent_id "$JSON" | sed 's/null//g')"
+  echo "${PARENT_ID}"
+
+  [[ "$GROUP_GET_SHOW" -eq 1 ]] && >&2 jq -r . "$JSON"
+
+  rm -f "$JSON"
+}
+
 function project_list()
 {
 
