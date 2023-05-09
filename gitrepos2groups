@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# This script comes with ABSOLUTELY NO WARRANTY, use at own risk
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiux@osiux.com>
+# Copyright (C) 2022 Osiris Alejandro Gomez <osiris@gcoop.coop>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck disable=SC1090
+# shellcheck source=/dev/null
+# shellcheck disable=SC2116
+
+DIR_BIN="$(dirname "$0")" && source "$DIR_BIN/gl-src-common"
+
+function usage()
+{
+cat << EOF
+
+## \`$BIN\` Create /groups/ and /subgroups/ from \`.git-repos\`
+
+### Usage
+
+\`\`\`bash
+
+  $BIN GIT_REPOS
+
+\`\`\`
+
+### Example
+
+\`\`\`bash
+
+  $BIN .git-repos
+
+\`\`\`
+
+EOF
+exit 0
+}
+
+[[ "$1" =~ ^[-]+(h|help) ]] && usage
+
+[[ -z "$1"          ]] || GIT_REPOS="$1"
+[[ -n "$GIT_REPOS"  ]] || GIT_REPOS='.git-repos'
+[[ -z "$GIT_REPOS"  ]] && die "EMPTY GIT_REPOS"
+[[ -e "$GIT_REPOS"  ]] || die "NOT FOUND FILE $GIT_REPOS"
+
+if [[ -n "$GIT_PARENT" ]]
+then
+  GIT_PARENT_ID="$(group_get "$GIT_PARENT")"
+  [[ -z "$GIT_PARENT_ID" ]] && die "NOT FOUND GROUP ID FOR $GIT_PARENT"
+else
+  [[ -z "$2" ]] || GIT_PARENT="$2"
+  GIT_PARENT_ID="$(group_get "$GIT_PARENT")"
+fi
+
+stderror "USING $GIT_PARENT AS PARENT GROUP WITH ID $GIT_PARENT_ID"
+
+TMP1="$(mktemp)"
+TMP2="$(mktemp)"
+
+grep -v '\#' "$GIT_REPOS" | sed 's/^$//g' > "$TMP1"
+
+while read -r DIR _
+do
+
+  LEVEL="$(echo "$DIR" | grep -Eo '/' | wc -c)"
+  [[ "$LEVEL" -gt 0 ]] && LEVEL="$((LEVEL-1))"
+
+  if [[ "$LEVEL" -eq 0 ]]
+  then
+    stderror "IGNORE $DIR IS A PROJECT"
+    continue
+  fi
+
+  echo "$DIR" | tr '/' '\n' > "$TMP2"
+  FIRST_GROUP="$(head -1 "$TMP2")"
+
+  # DELETE FIRST GROUP
+  sed -i '1 d' "$TMP2"
+  # DELETE LAST GROUP (IS A PROJECT)
+  sed -i '$ d' "$TMP2"
+
+  FIRST_ID="$(group_get "$FIRST_GROUP")"
+
+  if [[ -z "$FIRST_ID" ]]
+  then
+    MSG="CREATE GROUP $FIRST_GROUP"
+    [[ -z "$GIT_PARENT_ID" ]] || MSG+=" WITH PARENT ID $GIT_PARENT_ID"
+    echo "$MSG"
+    if [[ -z "$GIT_PARENT_ID" ]]
+    then
+      group_new "$FIRST_GROUP"
+    else
+      subgroup_new "$FIRST_GROUP" "$GIT_PARENT_ID"
+    fi
+  else
+    FIRST_PARENT_ID="$(group_get_parent_id "$FIRST_GROUP")"
+    MSG="GROUP $FIRST_GROUP ALREADY EXISTS PARENT ID $FIRST_PARENT_ID"
+    stderror "$MSG"
+  fi
+
+  FIRST_ID="$(group_get "$FIRST_GROUP")"
+  PARENT_GROUP="$FIRST_GROUP"
+  PARENT_ID="$FIRST_ID"
+
+  while read -r GROUP
+  do
+
+    GROUP_ID="$(group_get "$GROUP")"
+    if [[ -z "$GROUP_ID" ]]
+    then
+      stderror "CREATE GROUP $GROUP WITH PARENT GROUP $PARENT_GROUP ($PARENT_ID)"
+      GROUP_ID="$(subgroup_new "$GROUP" "$PARENT_ID")"
+    else
+      stderror "ALREADY EXISTS GROUP $GROUP WITH GROUP ID $GROUP_ID"
+    fi
+    PARENT_GROUP="$GROUP"
+    PARENT_ID="$GROUP_ID"
+
+  done < "$TMP2"
+
+done < "$TMP1"
+
+rm -f "$TMP1"
+rm -f "$TMP2"
