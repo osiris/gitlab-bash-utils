@@ -563,6 +563,49 @@ function group_get_parent_id()
   rm -f "$JSON"
 }
 
+function subgroup_new()
+{
+
+  local DATA JSON PARENT_ID SUBGROUP SUBGROUP_ID URL
+
+  SUBGROUP="$1"
+  PARENT_ID="$2"
+  SUBGROUP_ID=0
+
+  if [[ "$SUBGROUP_ID" -gt 0 ]]
+  then
+    echo "$SUBGROUP_ID"
+    stderror "SUBGROUP $SUBGROUP ALREADY EXISTS WITH SUBGROUP_ID $SUBGROUP_ID"
+    exit 0
+  fi
+
+DATA="$(cat << EOF
+{"name": "$SUBGROUP", "path": "$SUBGROUP", "parent_id": "$PARENT_ID"}
+EOF
+)"
+
+  URL="$GL_URL_API/groups/"
+  JSON="$(mktemp)"
+
+  stderror "CREATE SUBGROUP $SUBGROUP IN ${URL#*@}"
+	proxy_socks_show
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL  \
+       -H "PRIVATE-TOKEN: $GLAB_TOKEN"          \
+       -H "Content-Type: application/json"      \
+       --data "$DATA"                           > "$JSON"
+
+  [[ -s "$JSON" ]] || die "EMPTY JSON $JSON"
+
+  SUBGROUP_ID="$(jq -r .id "$JSON")"
+  echo "$SUBGROUP_ID"
+
+  >&2 jq -r . "$JSON"
+
+  rm -f "$JSON"
+
+}
+
 function project_list()
 {
 
