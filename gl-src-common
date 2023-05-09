@@ -429,6 +429,28 @@ function project_member_add()
 
 }
 
+function project_unprotect_branch()
+{
+  local BRANCH JQ JSON PROJECT_ID URL
+
+  PROJECT_ID="$1"
+  BRANCH="$2"
+
+  URL="$GL_URL_API/projects/$PROJECT_ID/protected_branches/$BRANCH"
+  JSON="$(mktemp)"
+
+  stderror "UNPROTECT BRANCH $BRANCH IN $(safe_url "$URL")"
+  proxy_socks_show
+
+  JQ='.'
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL \
+    -X DELETE                                  \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"            > "$JSON"
+
+   jq -r "$JQ" "$JSON"
+}
+
 function project_protected_branches()
 {
   local JQ JSON PROJECT_ID URL
