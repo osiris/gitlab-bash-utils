@@ -80,38 +80,48 @@ fi
 
 if [[ -e "$TMPI" ]]
 then
-  ISSUE_ID="$(head -1 "$TMPI")"
+  ISSUE="$(head -1 "$TMPI")"
 else
-  ISSUE_ID="$1"
+  [[ -n "$ISSUE" ]] || ISSUE="$VALIDATE_ISSUE"
+  [[ -z "$ISSUE" ]] && ISSUE="$1"
 fi
 
 CURRENT_BRANCH="$(git branch --no-color --show-current)"
 
-[[ -n "$TARGET_BRANCH" ]] || TARGET_BRANCH='develop'
+if [[ ! -n "$TARGET_BRANCH" ]]
+then
+  # FIXME switch master to main if exists
+  [[ "$CURRENT_BRANCH" =~ feature/.* ]] && TARGET_BRANCH='develop'
+  [[ "$CURRENT_BRANCH" =~ release/.* ]] && TARGET_BRANCH='master'
+  [[ "$CURRENT_BRANCH" =~ hotfix/.*  ]] && TARGET_BRANCH='master'
+  [[ "$CURRENT_BRANCH" =~ develop    ]] && TARGET_BRANCH='master'
+  [[ -z "$TARGET_BRANCH" ]] && TARGET_BRANCH='develop'
+fi
+
 [[ -n "$SOURCE_BRANCH" ]] || SOURCE_BRANCH="$CURRENT_BRANCH"
-# FIXME validate CURRENT_BRANCH feature/ ?
 [[ -n "$LABELS"        ]] || LABELS='wip'
 [[ -n "$ASSIGNEE"      ]] || ASSIGNEE="$GL_DEFAULT_ASSIGNEE"
 [[ -n "$REVIEWER"      ]] || REVIEWER="$GL_DEFAULT_REVIEWER"
 [[ -z "$ASSIGNEE"      ]] && die "EMPTY ASSIGNEE"
 [[ -z "$REVIEWER"      ]] && REVIEWER="$ASSIGNEE"
-[[ -z "$ISSUE_ID"      ]] && die "EMPTY ISSUE_ID"
 
-ISSUE_TITLE="$(gl-issue-title "$ISSUE_ID")"
+validate_issue "$ISSUE"
+
+ISSUE_TITLE="$(gl-issue-title "$ISSUE")"
+
 if [[ -z "$TITLE" ]]
 then
   TITLE="Draft: Resolve $SOURCE_BRANCH '$ISSUE_TITLE'"
 fi
 
-ISSUE_CHECK="$(gl-issue-check "$ISSUE_ID")"
 if [[ -z "$DESCRIPTION" ]]
 then
 
+CLOSES="${REPO##* }#${ISSUE_ID}"
+
 DESCRIPTION="$(cat << EOF
 
-- Closes #${ISSUE_ID}
-
-$ISSUE_CHECK
+- Closes $CLOSES
 
 EOF
 )"
