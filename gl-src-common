@@ -40,6 +40,19 @@ GLAB_CONFIG="$HOME/.config/glab-cli/config.yml"
 GIT_CFG='.git/config'
 BIN=$(basename "$0")
 
+[[ -n "$GL_INFO"          ]] || GL_INFO='0'
+[[ -n "$ORIGIN"           ]] || ORIGIN='origin'
+[[ -n "$REGEX_PROTO"      ]] || REGEX_PROTO='http[s]\?:\/\/'
+[[ -n "$GIT_HOST"         ]] || GIT_HOST="$(git_remote_gethost)"
+[[ -n "$CURL_DEBUG"       ]] || CURL_DEBUG='-s'
+[[ -n "$GIT_NAME"         ]] || GIT_NAME="${GIT_HOST//./_}"
+[[ -n "$CURL_OPTS"        ]] || CURL_OPTS="--connect-timeout 3"
+[[ -n "$PROJECT_NEW_SHOW" ]] || PROJECT_NEW_SHOW=0
+[[ -n "$GROUP_NEW_SHOW"   ]] || GROUP_NEW_SHOW=0
+[[ -n "$PROJECT_GET_SHOW" ]] || PROJECT_GET_SHOW=0
+[[ -n "$GROUP_GET_SHOW"   ]] || GROUP_GET_SHOW=0
+[[ -n "$PROXY_SOCKS_SHOW" ]] || PROXY_SOCKS_SHOW=0
+
 }
 
 die ()
