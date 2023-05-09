@@ -476,6 +476,35 @@ function project_issues()
   jq -r . "$JSON"
 }
 
+function project_get()
+{
+  local PROJECT JQ JSON URL
+
+  PROJECT="$1"
+  URL="$GL_URL_API/projects?search=$PROJECT"
+  JSON="$(mktemp)"
+
+  stderror "GET PROJECT $PROJECT FROM $(safe_url "$URL")"
+  proxy_socks_show
+
+  JQ=".[] | select(.name == \"$PROJECT\")"
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL  \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"             \
+    -H "Content-Type: application/json"         \
+    | jq -r "$JQ"                               > "$JSON"
+
+  # RETURN WHEN JSON IS EMPTY
+  [[ -s "$JSON" ]] || return 0
+
+  PROJECT_ID="$(jq -r .id "$JSON")"
+  echo "$PROJECT_ID"
+
+  [[ "$PROJECT_GET_SHOW" -eq 1 ]] && >&2 jq -r . "$JSON"
+
+  rm -f "$JSON"
+}
+
 function project_list()
 {
 
