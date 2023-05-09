@@ -457,6 +457,25 @@ function project_protect_branch()
   jq -r "$JQ" "$JSON"
 }
 
+function project_issues()
+{
+  local PROJECT_ID JQ JSON URL
+
+  PROJECT_ID="$1"
+  URL="$GL_URL_API/projects/$PROJECT_ID/issues"
+  JSON="$(mktemp)"
+
+  stderror "GET ISSUES FROM $(safe_url "$URL")"
+  proxy_socks_show
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL  \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"             \
+    -H "Content-Type: application/json"         \
+    | jq -r "$JQ"                               > "$JSON"
+
+  jq -r . "$JSON"
+}
+
 function project_list()
 {
 
