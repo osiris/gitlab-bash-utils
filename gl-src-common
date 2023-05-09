@@ -340,7 +340,7 @@ function notification_user_get()
   curl $CURL_SOCKS $URL                  \
     -s                                   \
     -k                                   \
-    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"      \
       | jq -r .
 }
 
@@ -352,7 +352,7 @@ function notification_group_get()
   curl $CURL_SOCKS $URL                  \
     -s                                   \
     -k                                   \
-    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"      \
       | jq -r .
 }
 
@@ -368,7 +368,7 @@ function notification_group_set()
     -s                                   \
     -k                                   \
     -X "PUT"                             \
-    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"      \
       | jq -r .
 }
 
@@ -401,7 +401,7 @@ function project_list()
   curl $CURL_SOCKS $URL                  \
     -s                                   \
     -k                                   \
-    -H "PRIVATE-TOKEN: $GL_TOKEN_PASS" \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"      \
       | jq -r . > "$JSON" && project_filter_list "$JSON"
 
 }
@@ -441,6 +441,7 @@ function main()
   defaults
   check_dependencies
   config
+  glab_token
   read_alias
 
 }
