@@ -53,12 +53,14 @@ exit 0
 [[ "$1" =~ ^[-]+(h|help) ]] && usage
 
 [[ -e "$GIT_CFG" ]] || die "INVALID GIT REPOSITORY"
-[[ -z "$1"       ]] && die "EMPTY ISSUE ID"
+[[ -n "$ISSUE"   ]] || ISSUE="$VALIDATE_ISSUE"
+[[ -z "$ISSUE"   ]] && ISSUE="$1"
+[[ -z "$ISSUE"   ]] && die "EMPTY ISSUE ID"
 
-ISSUE="$1"
+validate_issue "$ISSUE"
 
-gl issue view "$ISSUE" \
-  | tee                \
-  | grep title:        \
-  | cut -d: -f2-       \
+gl issue view "$ISSUE_ID" $REPO \
+  | tee                         \
+  | grep title:                 \
+  | cut -d: -f2-                \
   | tr -d '\t'
