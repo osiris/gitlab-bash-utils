@@ -78,6 +78,11 @@ success ()
   printf "%s\\n" "${GREEN}[OK] $1 $NORMAL" && exit 0
 }
 
+gl_info ()
+{
+  [[ "$GL_INFO" -eq 1 ]] && stderror "$1"
+}
+
 stderror ()
 {
   echo >&2 "$1"
