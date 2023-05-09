@@ -100,26 +100,6 @@ do
     echo "$str"
 done)
 
-[[ -z "$GL_TOKEN_NAME" ]] && die "UNDEFINED GL_TOKEN_NAME"
-[[ -z "$GL_TOKEN_PASS" ]] && die "UNDEFINED GL_TOKEN_PASS"
-[[ -z "$HTTP_PROXY"        ]] || stderror "Using HTTP_PROXY=$HTTP_PROXY"
-
-if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
-then
-
-  CURL_SOCKS="--socks5 $GL_PROXY_SOCKS_HOST:$GL_PROXY_SOCKS_PORT"
-  #FIXME stderror "Using CURL_SOCKS=$CURL_SOCKS"
-
-fi
-
-GL_URL_API="https://$GL_TOKEN_NAME:$GL_TOKEN_PASS@$GL_HOST/api/v4"
-
-CURL_SOCKS=''
-if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
-then
-  CURL_SOCKS="--socks5 $GL_PROXY_SOCKS_HOST:$GL_PROXY_SOCKS_PORT"
-fi
-
 }
 
 check_dependencies()
@@ -129,6 +109,24 @@ for i in awk curl glab jq
 do
   command -v "$i" >/dev/null || die "try: install $i "
 done
+
+}
+
+git_remote_geturl()
+{
+  git remote get-url "$ORIGIN" | sed 's/[a-z\-]\+:[a-zA-Z0-9_\-]\+@//g'
+}
+
+CURL_SOCKS=''
+if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
+then
+  CURL_SOCKS="--socks5 $GL_PROXY_SOCKS_HOST:$GL_PROXY_SOCKS_PORT"
+fi
+
+}
+
+{
+
 
 }
 
