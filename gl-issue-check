@@ -53,13 +53,9 @@ exit 0
 [[ "$1" =~ ^[-]+(h|help) ]] && usage
 
 [[ -e "$GIT_CFG" ]] || die "NOT FOUND $GIT_CFG"
-[[ -z "$1"       ]] && die "EMPTY ISSUE"
 
-ISSUE="$1"
-REGEX='^[0-9]+$'
+validate_issue "$1"
 
-[[ "$ISSUE" =~ $REGEX ]] || die "INVALID ISSUE ID"
-
-LINK="$(gl-issue-link "$ISSUE")"
+LINK="$(gl-issue-link "$ISSUE_ID")"
 # FIXME return Checkbox DONE [X] when issue is closed
 printf "%s %s\n" '- [ ]' "$LINK"
