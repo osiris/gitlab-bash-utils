@@ -65,7 +65,7 @@ function file2alias()
 function table2header()
 {
 
-printf "| %-23s | %-6s | %-70s |\\n" 'script' 'alias' 'description'
+printf "| %-23s | %-7s | %-75s |\\n" 'script' 'alias' 'description'
 
 }
 
@@ -79,7 +79,7 @@ function title2table()
     | while read -r _ D
       do
 
-        printf "| \`%-21s\` | %-6s | %-70s |\\n" \
+        printf "| \`%-21s\` | %-7s | %-75s |\\n" \
                "$1" "$(file2alias "$1")" "$D"
 
       done
@@ -89,7 +89,7 @@ function title2table()
 function table2div()
 {
 
-printf "| %-23s | %-6s | %-70s |\\n" ' ' ' ' ' ' | sed 's/ /-/g'
+printf "| %-23s | %-7s | %-75s |\\n" ' ' ' ' ' ' | sed 's/ /-/g'
 
 }
 
@@ -108,7 +108,7 @@ find . -maxdepth 1 -type f -executable -iname 'gl-*' \
       then
         D='FIXME'
         [[ "$F" = 'gl-src-common' ]] && D='Common variables and functions'
-        printf "| \`%-21s\` | %-6s | %-70s |" \
+        printf "| \`%-21s\` | %-7s | %-75s |" \
                "$F" "$(file2alias "$F")" "$D"
       fi
       echo "$TABLE"
