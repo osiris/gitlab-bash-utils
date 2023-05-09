@@ -62,7 +62,12 @@ exit 0
 
 [[ "$1" =~ ^[-]+(h|help) ]] && usage
 
-# FIXME add REGEX filters
-# FIXME paginate projects
-project_list 1
-project_list 2
+[[ -n "$PAGES"          ]] || PAGES='2'
+[[ -n "$REGEX_PROJECTS" ]] || REGEX_PROJECTS='.*'
+
+for PAGE in $(seq 1 "$PAGES")
+do
+
+  project_list "$PAGE" | grep -E "$REGEX_PROJECTS"
+
+done
