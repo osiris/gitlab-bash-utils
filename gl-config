@@ -22,7 +22,7 @@
 BIN="$(basename "$0")"
 GL_CONFIG="$HOME/.gl-config"
 GL_BACKUP="$HOME/.gl-config.$(date +%s).bak"
-GL_CONFIG="$HOME/.config/glab-cli/config.yml"
+GLAB_CONFIG="$HOME/.config/glab-cli/config.yml"
 
 function usage()
 {
@@ -65,7 +65,6 @@ Define variables in \`~/.gl-config\`:
   GL_BRANCH: master
   GL_DEFAULT_ASSIGNEE: admin
   GL_DEFAULT_REVIEWER: admin
-  GL_HOST: gitlab.com
   GL_MERGE_LEVEL: 40
   GL_PROJECT_ALLOW_MERGE_ON_SKIPPED_PIPELINE: false
   GL_PROJECT_MERGE_REQUESTS_ENABLED: true
@@ -78,9 +77,6 @@ Define variables in \`~/.gl-config\`:
   GL_PROXY_SOCKS_HOST: 127.0.0.1
   GL_PROXY_SOCKS_PORT: 8080
   GL_PUSH_LEVEL: 40
-  GL_TOKEN_NAME: glab-cli-token
-  GL_TOKEN_PASS: SuperTextPlainSecret
-  GL_TOKEN_PREFIX: token/gitlab.com
   GL_UNPROTECT_LEVEL: 40
 
 \`\`\`
@@ -111,11 +107,11 @@ config_example()
 
   stderror "WRITE EXAMPLE CONFIG IN $GL_CONFIG"
 
-  if [[ -e "$GL_CONFIG" ]]
+  if [[ -e "$GLAB_CONFIG" ]]
   then
-    stderror "REMEMBER ADJUST CONFIG IN $GL_CONFIG"
+    stderror "REMEMBER ADJUST CONFIG IN $GLAB_CONFIG"
   else
-    stderror "NOT FOUND $GL_CONFIG"
+    stderror "NOT FOUND $GLAB_CONFIG"
   fi
 
   exit 0
