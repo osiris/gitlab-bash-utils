@@ -405,6 +405,22 @@ function safe_url()
   echo "$URL"
 }
 
+function project_protected_branches()
+{
+  local JQ JSON PROJECT_ID URL
+
+  PROJECT_ID="$1"
+
+  URL="$GL_URL_API/projects/$PROJECT_ID/protected_branches"
+  JSON="$(mktemp)"
+
+  stderror "SHOW PROTECTED BRANCHES FROM $(safe_url "$URL")"
+  proxy_socks_show
+
+  curl $CURL_DEBUG $CURL_OPTS $CURL_SOCKS $URL \
+    -H "PRIVATE-TOKEN: $GLAB_TOKEN"            > "$JSON"
+
+  jq -r . "$JSON"
   rm -f "$JSON"
 }
 
