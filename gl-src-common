@@ -128,6 +128,17 @@ git-remote-geturl "$ORIGIN" \
 
 }
 
+function proxy_socks_show()
+{
+
+  if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
+  then
+    [[ "$PROXY_SOCKS_SHOW" -eq 1 ]] \
+      && stderror "USING PROXY SOCKS $CURL_SOCKS"
+  fi
+
+}
+
 CURL_SOCKS=''
 if [[ "$GL_PROXY_SOCKS_ENABLED" -eq 1 ]]
 then
